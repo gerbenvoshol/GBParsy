@@ -30,6 +30,11 @@ int main(int argc, char *argv[]) {
     unsigned int iOpt;
     unsigned int i, j, k;
     
+    if (argc < 2) {
+        help();
+        exit(0);
+    }
+
     while((iOpt = getopt(argc, argv, "f:i:q:t:h")) != -1) {
         switch(iOpt) {
         case 'h':

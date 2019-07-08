@@ -1,7 +1,7 @@
 #define LINELEN             65536
 #define MEGA                1048576
 #define INITGBFSEQNUM       4
-#define INITREFERENCENUM    8
+#define INITREFERENCENUM    16
 #define INITFEATURENUM      64
 #define INITQUALIFIERNUM    128
 #define FIELDLEN            16
@@ -34,7 +34,9 @@ typedef struct tReference {
     gb_string sConsrtm;
     gb_string sTitle;
     gb_string sJournal;
+    gb_string sMedline;
     gb_string sPubMed;
+    gb_string sRemark;
     unsigned int iNum;
 } gb_reference;
 
