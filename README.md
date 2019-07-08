@@ -1,0 +1,2 @@
+# GBParsy
+GBParsy is a library of functions that parses the GenBank flatfile, which is a representative and popular sequence format. The library is optimized for speed and efficient use of memory so it can rapidly parse large sequence such as Arabidopsis chromosome for genomic analysis. GBParsyPy is additional version of GBParsy for the Python. GBParsyPy adopted GBParsy as a core parser so GBParsyPy inherited all of its features from GBParsy.
