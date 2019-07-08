@@ -29,6 +29,217 @@ regex_t ptRegExGI;
     getLine(x, y); \
     rtrim(x)
 
+char *stdcode1[65] = {
+  "K",              /* AAA */
+  "N",              /* AAC */
+  "K",              /* AAG */
+  "N",              /* AAU */
+  "T",              /* ACA */
+  "T",              /* ACC */
+  "T",              /* ACG */
+  "T",              /* ACU */
+  "R",              /* AGA */
+  "S",              /* AGC */
+  "R",              /* AGG */
+  "S",              /* AGU */
+  "I",              /* AUA */
+  "I",              /* AUC */
+  "M",              /* AUG */
+  "I",              /* AUU */
+  "Q",              /* CAA */
+  "H",              /* CAC */
+  "Q",              /* CAG */
+  "H",              /* CAU */
+  "P",              /* CCA */
+  "P",              /* CCC */
+  "P",              /* CCG */
+  "P",              /* CCU */
+  "R",              /* CGA */
+  "R",              /* CGC */
+  "R",              /* CGG */
+  "R",              /* CGU */
+  "L",              /* CUA */
+  "L",              /* CUC */
+  "L",              /* CUG */
+  "L",              /* CUU */
+  "E",              /* GAA */
+  "D",              /* GAC */
+  "E",              /* GAG */
+  "D",              /* GAU */
+  "A",              /* GCA */
+  "A",              /* GCC */
+  "A",              /* GCG */
+  "A",              /* GCU */
+  "G",              /* GGA */
+  "G",              /* GGC */
+  "G",              /* GGG */
+  "G",              /* GGU */
+  "V",              /* GUA */
+  "V",              /* GUC */
+  "V",              /* GUG */
+  "V",              /* GUU */
+  "*",              /* UAA */
+  "Y",              /* UAC */
+  "*",              /* UAG */
+  "Y",              /* UAU */
+  "S",              /* UCA */
+  "S",              /* UCC */
+  "S",              /* UCG */
+  "S",              /* UCU */
+  "*",              /* UGA */
+  "C",              /* UGC */
+  "W",              /* UGG */
+  "C",              /* UGU */
+  "L",              /* UUA */
+  "F",              /* UUC */
+  "L",              /* UUG */
+  "F",              /* UUU */
+  "X",              /* unknown */
+};
+
+char *stdcode3[65] = {
+  "Lys",            /* AAA */
+  "Asn",            /* AAC */
+  "Lys",            /* AAG */
+  "Asn",            /* AAU */
+  "Thr",            /* ACA */
+  "Thr",            /* ACC */
+  "Thr",            /* ACG */
+  "Thr",            /* ACU */
+  "Arg",            /* AGA */
+  "Ser",            /* AGC */
+  "Arg",            /* AGG */
+  "Ser",            /* AGU */
+  "Ile",            /* AUA */
+  "Ile",            /* AUC */
+  "Met",            /* AUG */
+  "Ile",            /* AUU */
+  "Gln",            /* CAA */
+  "His",            /* CAC */
+  "Gln",            /* CAG */
+  "His",            /* CAU */
+  "Pro",            /* CCA */
+  "Pro",            /* CCC */
+  "Pro",            /* CCG */
+  "Pro",            /* CCU */
+  "Arg",            /* CGA */
+  "Arg",            /* CGC */
+  "Arg",            /* CGG */
+  "Arg",            /* CGU */
+  "Leu",            /* CUA */
+  "Leu",            /* CUC */
+  "Leu",            /* CUG */
+  "Leu",            /* CUU */
+  "Glu",            /* GAA */
+  "Asp",            /* GAC */
+  "Glu",            /* GAG */
+  "Asp",            /* GAU */
+  "Ala",            /* GCA */
+  "Ala",            /* GCC */
+  "Ala",            /* GCG */
+  "Ala",            /* GCU */
+  "Gly",            /* GGA */
+  "Gly",            /* GGC */
+  "Gly",            /* GGG */
+  "Gly",            /* GGU */
+  "Val",            /* GUA */
+  "Val",            /* GUC */
+  "Val",            /* GUG */
+  "Val",            /* GUU */
+  "***",            /* UAA */
+  "Tyr",            /* UAC */
+  "***",            /* UAG */
+  "Tyr",            /* UAU */
+  "Ser",            /* UCA */
+  "Ser",            /* UCC */
+  "Ser",            /* UCG */
+  "Ser",            /* UCU */
+  "***",            /* UGA */
+  "Cys",            /* UGC */
+  "Trp",            /* UGG */
+  "Cys",            /* UGU */
+  "Leu",            /* UUA */
+  "Phe",            /* UUC */
+  "Leu",            /* UUG */
+  "Trp",            /* UUU */
+  "XXX",            /* unknown */
+};
+/* Function: seqTranslate(char *seq, char **code)
+ * 
+ * Given a ptr to the start of a nucleic acid sequence,
+ * and a genetic code, translate the sequence into
+ * amino acid sequence.
+ * 
+ * code is an array of 65 strings, representing
+ * the translations of the 64 codons, arranged
+ * in order AAA, AAC, AAG, AAU, ..., UUA, UUC, UUG, UUU.
+ * '*' or '***' is used to represent termination
+ * codons, usually. The final string, code[64],
+ * is the code for an ambiguous amino acid.
+ *
+ * Because of the way space is allocated for the amino
+ * acid sequence, the amino acid strings cannot be
+ * longer than 3 letters each. (I don't foresee using
+ * anything but the single- and triple- letter codes.)
+ * 
+ * Returns a ptr to the translation string on success,
+ * or NULL on failure.
+ */
+char *seqTranslate(char *seq, char **code)
+{
+    int   codon;          /* index for codon         */
+    char *aaseq;          /* RETURN: the translation */
+    char *aaptr;          /* ptr into aaseq */
+    int   i;
+  
+    if (seq == NULL) {
+        fprintf(stderr, "No sequence given!\n"); 
+        return NULL;
+    }
+
+    if ((aaseq = (char *) calloc (strlen(seq) + 1, sizeof(char))) == NULL) {
+        fprintf(stderr, "Failes to allocate memory\n");
+        return NULL;
+    }
+    
+    aaptr = aaseq;
+    for (; *seq != '\0' && *(seq+1) != '\0' && *(seq+2) != '\0'; seq += 3) {
+        /* calculate the lookup value for this codon */
+        codon = 0;
+        for (i = 0; i < 3; i++) {
+            codon *= 4;
+            switch (*(seq + i)) {
+                case 'A': 
+                case 'a':
+                    break;
+                case 'C': 
+                case 'c': 
+                    codon += 1; 
+                    break;
+                case 'G': 
+                case 'g': 
+                    codon += 2; 
+                    break;
+                /* T, t and U, u are the same! */
+                case 'T': 
+                case 't': 
+                case 'U': 
+                case 'u': 
+                    codon += 3; 
+                    break;
+                default: 
+                    codon = 64; 
+                    break;
+            }
+            if (codon == 64) 
+                break;
+        }
+        strcpy(aaptr, code[codon]);
+        aaptr += strlen(code[codon]);
+    }
+    return aaseq;
+}
+
 static gb_string getLine(gb_string sLine, FILE *FSeqFile) {
     gb_string sReturn;
 
@@ -87,7 +298,7 @@ static gb_string joinLines(FILE *FSeqFile, unsigned int iSpaceLen) {
 }
 
 void initRegEx(void) {
-    const char sLocus[] = "^LOCUS +([a-z|A-Z|0-9|_]+) +([0-9]+) bp +([a-z|A-Z|-]+) +([a-z]+) +([A-Z]{3}) (.+)";
+    const char sLocus[] = "^LOCUS +([a-z|A-Z|0-9|_]+) +([0-9]+) bp +([a-z|A-Z|-| ]+) ([a-z| ]{8}) ([A-Z| ]{3}) ([0-9]+-[A-Z]+-[0-9]+)";
     const char sOneLine[] = "^ *([A-Z]+) +(.+)";
     const char sAccession[] = "^ACCESSION +([a-z|A-Z|0-9|_]+) ?";
     const char sRegion[] = " +REGION: ?([0-9]+)\\.\\.([0-9]+)";
@@ -434,7 +645,7 @@ static void parseFeature(FILE *FSeqFile, gb_data *ptGBData) {
             if (sQualifier < sQualifierTemp) {
                 *sQualifierTemp++ = '\n';
                 *sQualifierTemp = '\0';
-                /* printf("=====\n%s=====", sQualifier); */
+                //fprintf(stderr, "=====\n%s=====", sQualifier);
                 sQualifier = realloc(sQualifier, (sQualifierTemp - sQualifier + 1) * sizeof(*sQualifier));
                 QualifierParser(sQualifier, (pFeatures + iFeatureNum - 1));
             }
@@ -500,7 +711,7 @@ static void parseFeature(FILE *FSeqFile, gb_data *ptGBData) {
 
 /* Parse sequences */
 static void parseSequence(FILE *FSeqFile, gb_data *ptGBData) {
-    char sLine[LINELEN] = {'\0',};
+    char sLine[LINELEN] = {'\0'};
     unsigned long lSeqLen;
 
     lSeqLen = 0;
@@ -513,6 +724,8 @@ static void parseSequence(FILE *FSeqFile, gb_data *ptGBData) {
         }
         lSeqLen += SequenceParser(sLine, ptGBData->sSequence + lSeqLen);
     }
+
+    //fprintf(stderr, "%s\n", ptGBData->sSequence);
 }
 
 static void parseDef(FILE *FSeqFile, gb_data *ptGBData) {
@@ -552,6 +765,8 @@ static void parseAccession(FILE *FSeqFile, gb_data *ptGBData) {
         *(sLine + ptRegMatch[2].rm_eo) = '\0';
         (ptGBData->lRegion)[1] = atol(sLine + ptRegMatch[2].rm_so);
     }
+    
+    //fprintf(stderr, "Accession: %s\n", ptGBData->sAccession); 
 }
 
 static void parseVersion(FILE *FSeqFile, gb_data *ptGBData) {
@@ -564,14 +779,19 @@ static void parseVersion(FILE *FSeqFile, gb_data *ptGBData) {
         *(sLine + ptRegMatch[1].rm_eo) = '\0';
         ptGBData->sVersion = strdup(sLine + ptRegMatch[1].rm_so);
     }
+
     if (regexec(&ptRegExGI, sLine + ptRegMatch[1].rm_eo + 1, 2, ptRegMatch, 0) == 0) {
         *(sLine + ptRegMatch[1].rm_eo) = '\0';
         ptGBData->sGI = strdup(sLine + ptRegMatch[1].rm_so);
     }
+
+    //fprintf(stderr, "Version: %s\n", ptGBData->sVersion);
+    //fprintf(stderr, "GI: %s\n", ptGBData->sGI);
 }
 
 static void parseComment(FILE *FSeqFile, gb_data *ptGBData) {
     ptGBData->sComment = joinLines(FSeqFile, 12);
+    //fprintf(stderr, "Comment: %s\n", ptGBData->sComment);
 }
 
 static void parseSource(FILE *FSeqFile, gb_data *ptGBData) {
@@ -587,6 +807,10 @@ static void parseSource(FILE *FSeqFile, gb_data *ptGBData) {
     ptGBData->sOrganism = strdup(sLine + ptRegMatch[2].rm_so);
 
     ptGBData->sLineage = joinLines(FSeqFile, 12);
+
+    //fprintf(stderr, "Source: %s\n", ptGBData->sSource);
+    //fprintf(stderr, "Organism: %s\n", ptGBData->sOrganism);
+    //fprintf(stderr, "Lineage: %s\n", ptGBData->sLineage);
 }
 
 #define processRef( x, y ) \
@@ -715,8 +939,12 @@ void freeGBData(gb_data **pptGBData) {
         iFeatureNum = ptGBData->iFeatureNum;
     
         for (i = 0; i < iFeatureNum; i++) {
-            /* printf("%i, %i\n", iFeatureNum, (ptFeatures+iFeatureNum)->iQualifierNum); */
+            /* printf("%i, %i, %i\n", i, iFeatureNum, (ptFeatures+i)->iQualifierNum); */
             free((ptFeatures + i)->ptLocation);
+            /* If there are no qualifiers to free, continue to the next one */
+            if ((ptFeatures+i)->iQualifierNum == 0) {
+                continue;
+            }
             free(((ptFeatures + i)->ptQualifier)->sQualifier);
         }
 

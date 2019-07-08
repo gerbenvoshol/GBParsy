@@ -87,3 +87,8 @@ typedef struct tGBFFData {
 gb_data **parseGBFF(gb_string spFileName);
 void freeGBData(gb_data **pptGBFFData);
 gb_string getSequence(gb_string sSequence, gb_feature *ptFeature);
+
+char *seqTranslate(char *seq, char **code);
+
+extern char *stdcode1[65];
+extern char *stdcode3[65];
