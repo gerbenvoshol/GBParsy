@@ -2,10 +2,73 @@
 CHANGES
 #######
 
-0.5 (2008-01-20)
+0.5.3 (2008-01-23)
 ================
 
 Feature changes
 ---------------
-
 * Initial public release.
+
+
+0.5.4 (2008-02-29)
+================
+
+Feature changes
+---------------
+* Changed the order of functions
+* Changed project name from GBFP to GBParsy
+
+Fixed bugs
+---------------
+* Fixed segmentation fault at 'freeGBData' function in some sequences
+
+
+0.5.5 (2008-05-01)
+================
+
+Fixed bugs
+---------------
+* Fixed segmentation fault for a huge amount of qualifier data in some sequences
+
+
+0.5.6 (2008-05-10)
+================
+
+Fixed bugs
+---------------
+* Fixed memory leaks
+
+
+0.5.7 (2008-06-25)
+================
+
+Feature changes
+---------------
+* Added medline and remark entry in the reference data
+* Increased flexibility to parse LOCUS line in safety
+* Added new option(-s) to seqext and seqext.py to search qualifier data
+
+
+0.6.0 (2008-07-10)
+================
+
+Feature changes
+---------------
+* Added a Python class which generates a SeqRecord instance of BioPython from a parsed result
+
+
+0.6.1 (2008-07-26)
+================
+
+Feature changes
+---------------
+* Fixed memory leaks of GBParsyPy
+* Increased compatibility with SeqRecord of BioPython
+
+0.6.2 (2019-07-09)
+================
+
+Feature changes
+---------------
+* Fixed bug, freeing memory not allocates
+* Made the parsing of the Lineage line more robust
