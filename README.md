@@ -8,3 +8,9 @@ T.-H. Lee, Y.-K. Kim and B.H. Nahm (2008) GBParsy: A GenBank flatfile parser lib
 ## Contact
 
 If you have comments, questions and suggestions about GBParsy, please send a mail to gpvoshol@gmail.com.
+
+## Credits
+### Orignal author
+* Tae-Ho Lee <thlee@bio.mju.ac.kr>
+### Current Maintainer
+* Gerben Voshol <gpvoshol@gmail.com>
