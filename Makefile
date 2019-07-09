@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -O2 -Wall -ansi -pedantic
-DEBUG = -ggdb -pg
+CFLAGS = -O3 -Wall -DNDEBUG
+DEBUG = -ggdb -pg -Wall
 
 LIBS = libgbfp.a
 SHAREDLIB = libgbfp.so
@@ -54,7 +54,7 @@ seqext: seqext.c gbfp.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -o seqext seqext.c gbfp.c
 
 debug: seqext.c gbfp.c
-	$(CC) $(CFLAGS) $(DEBUG) -D_GNU_SOURCE -o seqext seqext.c gbfp.c
+	$(CC) $(DEBUG) -D_GNU_SOURCE -o seqext seqext.c gbfp.c
 
 clean:
 	rm -f $(OBJS) $(LIBS) $(SHAREDLIBV) $(SHAREDLIBM) seqext
