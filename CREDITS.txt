@@ -2,4 +2,8 @@
 CREDITS
 #######
 
+## Original Author
 * Tae-Ho Lee <thlee@bio.mju.ac.kr>
+
+## Current Maintainer
+* Gerben Voshol <gpvoshol@gmail.com>
