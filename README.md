@@ -41,5 +41,5 @@ If you have comments, questions and suggestions about GBParsy, please send a mai
 ## Credits
 ### Orignal author
 * Tae-Ho Lee <thlee@bio.mju.ac.kr>
-### Current Maintainer
+### Current author
 * Gerben Voshol <gpvoshol@gmail.com>
