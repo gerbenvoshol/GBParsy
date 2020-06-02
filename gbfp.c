@@ -259,7 +259,7 @@ char *seqTranslate(char *seq, char **code)
 
 /* Initializes regular expression */
 void initRegEx(void) {
-    const char sLocus[] = "^LOCUS +([a-z|A-Z|0-9|_]+) +([0-9]+) bp +([a-z|A-Z|-| ]+) ([a-z| ]{8}) ([A-Z| ]{3}) ([0-9]+-[A-Z]+-[0-9]+)";
+    const char sLocus[] = "^LOCUS +(.+) +([0-9]+) bp +([a-z|A-Z|-| ]+) ([a-z| ]{8}) ([A-Z| ]{3}) ([0-9]+-[A-Z]+-[0-9]+)";
     const char sOneLine[] = "^ *([A-Z]+) +(.+)";
     const char sAccession[] = "^ACCESSION +([a-z|A-Z|0-9|_]+) ?";
     const char sRegion[] = " +REGION: ?([0-9]+)\\.\\.([0-9]+)";
