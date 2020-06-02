@@ -14,6 +14,9 @@ void help(void) {
         "\n"
         "Usage: seqext [-h] [-V] [-f Feature_to_extract (default: gene)] [-q Qualifier_to_print] [-i Genbank_file]\n"
         "\n"
+        "-o  omit the use of location based identifiers (e.g. CDS_995899_996610)"
+        "-t  translate the extracted DNA sequence"
+        "-h  print help information and exit\n"
         "-V  print version information and exit\n");
 }
 
@@ -22,6 +25,7 @@ int main(int argc, char *argv[]) {
     char *sFeature = "gene";
     char *sQualifier = NULL;
     int translate = 0;
+    int omit_id = 0;
 
     gb_data **pptSeqData, *ptSeqData;
     gb_feature *ptFeature;
@@ -35,7 +39,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    while((iOpt = getopt(argc, argv, "f:i:q:t:h")) != -1) {
+    while((iOpt = getopt(argc, argv, "f:i:q:thVo")) != -1) {
         switch(iOpt) {
         case 'h':
             help();
@@ -51,7 +55,10 @@ int main(int argc, char *argv[]) {
             sQualifier = optarg;
             break;
         case 't':
-            translate = atoi(optarg);
+            translate = 1;
+            break;
+        case 'o':
+            omit_id = 1;
             break;
         default:
             help();
@@ -69,10 +76,11 @@ int main(int argc, char *argv[]) {
                 ptFeature = (ptSeqData->ptFeatures + j);
                 if (strcmp(sFeature, ptFeature->sFeature) == 0) {
                     if (sQualifier == NULL) {
-                        printf(">%s_%li_%li\n", \
-                            ptFeature->sFeature, \
-                            ptFeature->lStart, \
-                            ptFeature->lEnd);
+                        if (omit_id) {
+                            printf(">\n");
+                        } else {
+                            printf(">%s_%li_%li\n", ptFeature->sFeature, ptFeature->lStart, ptFeature->lEnd);
+                        }
                         if (translate) {
                             char *aaSeq;
                             aaSeq = seqTranslate(getSequence(ptSeqData->sSequence, ptFeature), stdcode1);
@@ -82,24 +90,26 @@ int main(int argc, char *argv[]) {
                             printf("%s\n", getSequence(ptSeqData->sSequence, ptFeature));
                         }
                     } else {
+                        if (omit_id) {
+                            printf(">");
+                        } else {
+                            printf(">%s_%li_%li ", ptFeature->sFeature, ptFeature->lStart, ptFeature->lEnd);
+                        }
                         for (k = 0; k < ptFeature->iQualifierNum; k++) {
                             ptQualifier = (ptFeature->ptQualifier + k);
-                            if (strcmp(sQualifier, ptQualifier->sQualifier) == 0) {
-                                printf(">%s_%li_%li %s\n", \
-                                    ptFeature->sFeature, \
-                                    ptFeature->lStart, \
-                                    ptFeature->lEnd, \
-                                    ptQualifier->sValue);
-                                    if (translate) {
-                                        char *aaSeq;
-                                        aaSeq = seqTranslate(getSequence(ptSeqData->sSequence, ptFeature), stdcode1);
-                                        printf("%s\n", aaSeq);
-                                        free(aaSeq);
-                                    } else {
-                                        printf("%s\n", getSequence(ptSeqData->sSequence, ptFeature));
-                                    }
-                                break;
+                            if (strstr(sQualifier, ptQualifier->sQualifier) != 0) {
+                                printf("%s ", ptQualifier->sValue);
+                                //break;
                             }
+                        }
+                        printf("\n");
+                        if (translate) {
+                            char *aaSeq;
+                            aaSeq = seqTranslate(getSequence(ptSeqData->sSequence, ptFeature), stdcode1);
+                            printf("%s\n", aaSeq);
+                            free(aaSeq);
+                        } else {
+                            printf("%s\n", getSequence(ptSeqData->sSequence, ptFeature));
                         }
                     }
                 }
