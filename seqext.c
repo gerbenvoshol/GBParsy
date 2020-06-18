@@ -14,8 +14,8 @@ void help(void) {
         "\n"
         "Usage: seqext [-h] [-V] [-f Feature_to_extract (default: gene)] [-q Qualifier_to_print] [-i Genbank_file]\n"
         "\n"
-        "-o  omit the use of location based identifiers (e.g. CDS_995899_996610)"
-        "-t  translate the extracted DNA sequence"
+        "-o  omit the use of location based identifiers (e.g. CDS_995899_996610)\n"
+        "-t  translate the extracted DNA sequence\n"
         "-h  print help information and exit\n"
         "-V  print version information and exit\n");
 }

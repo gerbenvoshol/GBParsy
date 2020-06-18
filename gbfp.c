@@ -476,12 +476,11 @@ static void parseVersion(FILE *FSeqFile, gb_data *ptGBData) {
     if (regexec(&ptRegExVersion, sLine, 2, ptRegMatch, 0) == 0) {
         *(sLine + ptRegMatch[1].rm_eo) = '\0';
         ptGBData->sVersion = strdup(sLine + ptRegMatch[1].rm_so);
+        if (regexec(&ptRegExGI, sLine + ptRegMatch[1].rm_eo + 1, 2, ptRegMatch, 0) == 0) {
+            *(sLine + ptRegMatch[1].rm_eo) = '\0';
+            ptGBData->sGI = strdup(sLine + ptRegMatch[1].rm_so);
+        }
     }
-    if (regexec(&ptRegExGI, sLine + ptRegMatch[1].rm_eo + 1, 2, ptRegMatch, 0) == 0) {
-        *(sLine + ptRegMatch[1].rm_eo) = '\0';
-        ptGBData->sGI = strdup(sLine + ptRegMatch[1].rm_so);
-    }
-
     debug_print(("Version: %s\n", ptGBData->sVersion));
     debug_print(("GI: %s\n", ptGBData->sGI));
 }
@@ -693,7 +692,7 @@ static void parseQualifier(gb_string sQualifier, gb_feature *pFeature) {
     gb_string sString = NULL;
     gb_qualifier *ptQualifier;
    
-    ptQualifier = malloc(INITQUALIFIERNUM * sizeof(gb_qualifier));
+    ptQualifier = calloc(INITQUALIFIERNUM, sizeof(gb_qualifier));
     pFeature->ptQualifier = ptQualifier;
     
 
