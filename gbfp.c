@@ -12,6 +12,14 @@
  
 #include "gbfp.h"
 
+/* Add support for gzip */
+#ifdef GZ_SUPPORT
+    #include "zlib.h"
+    typedef gzFile FILEPTR;
+#else
+    typedef FILE* FILEPTR;
+#endif
+
 #ifndef NDEBUG
 #  define debug_print(msg) stderr_printf msg
 #else
@@ -27,7 +35,7 @@ stderr_printf(const char *fmt, ...)
     va_end(ap);
 }
 
-const char sVer[] = "0.6.2";
+const char sVer[] = "0.7.0";
 const char sNorBase[] = "ACGTRYMKWSBDHVNacgtrymkwsbdhvn";
 const char sComBase[] = "TGCAYRKMWSVHDBNtgcayrkmwsvhdbn";
 const unsigned int iBaseLen = 30;
@@ -304,21 +312,25 @@ static void removeRChar(gb_string sLine, char cRemove) {
 }
 
 /* Gets a line from either the line buffer or the file */
-static gb_string getLine(gb_string sLine, FILE *FSeqFile) {
+static gb_string getLine(gb_string sLine, FILEPTR FSeqFile) {
     gb_string sReturn;
 
     if (*sTempLine != '\0') {
         sReturn = strcpy(sLine, sTempLine);
         *sTempLine = '\0';
     } else {
+#ifdef GZ_SUPPORT
+        sReturn = gzgets(FSeqFile, sLine, LINELEN);
+#else
         sReturn = fgets(sLine, LINELEN, FSeqFile);
+#endif
     }
 
     return sReturn;
 }
 
 /* Concatenates lines which start with specific white spaces */
-static gb_string joinLines(FILE *FSeqFile, unsigned int iSpaceLen) {
+static gb_string joinLines(FILEPTR FSeqFile, unsigned int iSpaceLen) {
     char sLine[LINELEN];
     gb_string sTemp, sJoinedLine;
 
@@ -327,7 +339,11 @@ static gb_string joinLines(FILE *FSeqFile, unsigned int iSpaceLen) {
     getLine_w_rtrim(sLine, FSeqFile);
     strcpy(sJoinedLine, sLine + iSpaceLen);
 
+#ifdef GZ_SUPPORT
+    while (gzgets(FSeqFile, sLine, LINELEN)) {
+#else
     while (fgets(sLine, LINELEN, FSeqFile)) {
+#endif
         sTemp = sLine;
         skipSpace(sTemp);
         if ((sTemp - sLine) < iSpaceLen) break;
@@ -422,7 +438,7 @@ static int parseLocus(gb_string sLocusStr, gb_data *ptGBData)
     return 0;
 }
 
-static void parseDef(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseDef(FILEPTR FSeqFile, gb_data *ptGBData) {
     char sLine[LINELEN];
     regmatch_t ptRegMatch[3];
 
@@ -434,7 +450,7 @@ static void parseDef(FILE *FSeqFile, gb_data *ptGBData) {
     debug_print(("Def: %s\n", ptGBData->sDef));
 }
 
-static void parseKeywords(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseKeywords(FILEPTR FSeqFile, gb_data *ptGBData) {
     char sLine[LINELEN];
     regmatch_t ptRegMatch[3];
 
@@ -446,7 +462,7 @@ static void parseKeywords(FILE *FSeqFile, gb_data *ptGBData) {
     debug_print(("Keyword: %s\n", ptGBData->sKeywords));
 }
 
-static void parseAccession(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseAccession(FILEPTR FSeqFile, gb_data *ptGBData) {
     char sLine[LINELEN];
     regmatch_t ptRegMatch[3];
 
@@ -467,7 +483,7 @@ static void parseAccession(FILE *FSeqFile, gb_data *ptGBData) {
     debug_print(("%s\n", ptGBData->sAccession));
 }
 
-static void parseVersion(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseVersion(FILEPTR FSeqFile, gb_data *ptGBData) {
     char sLine[LINELEN];
     regmatch_t ptRegMatch[2];
 
@@ -485,12 +501,12 @@ static void parseVersion(FILE *FSeqFile, gb_data *ptGBData) {
     debug_print(("GI: %s\n", ptGBData->sGI));
 }
 
-static void parseComment(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseComment(FILEPTR FSeqFile, gb_data *ptGBData) {
     ptGBData->sComment = joinLines(FSeqFile, 12);
     debug_print(("Comment: %s\n", ptGBData->sComment));
 }
 
-static void parseSource(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseSource(FILEPTR FSeqFile, gb_data *ptGBData) {
     char sLine[LINELEN];
     regmatch_t ptRegMatch[3];
 
@@ -526,7 +542,7 @@ static void parseSource(FILE *FSeqFile, gb_data *ptGBData) {
     putLine(sLine); \
     if (strstr(sLine, x) != NULL) y = joinLines(FSeqFile, 12)
 
-static void parseReference(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseReference(FILEPTR FSeqFile, gb_data *ptGBData) {
     char sLine[LINELEN];
     regmatch_t ptRegMatch[3];
     gb_reference *ptReferences = NULL;
@@ -726,7 +742,7 @@ static void parseQualifier(gb_string sQualifier, gb_feature *pFeature) {
     */
 }
 
-static void parseFeature(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseFeature(FILEPTR FSeqFile, gb_data *ptGBData) {
     char sLine[LINELEN] = {'\0',};
     char sLocation[LINELEN] = {'\0',};
     gb_string sQualifier = NULL;
@@ -743,7 +759,12 @@ static void parseFeature(FILE *FSeqFile, gb_data *ptGBData) {
     debug_print(("Parse features\n"));
 
     /* Parse FEATURES */
+#ifdef GZ_SUPPORT
+    while(gzgets(FSeqFile, sLine, LINELEN)) {
+#else
     while(fgets(sLine, LINELEN, FSeqFile)) {
+#endif
+    
         if (! isspace(*sLine)) {
             putLine(sLine);
             break;
@@ -837,15 +858,19 @@ static void parseFeature(FILE *FSeqFile, gb_data *ptGBData) {
 }
 
 /* Parse sequences */
-static void parseSequence(FILE *FSeqFile, gb_data *ptGBData) {
+static void parseSequence(FILEPTR FSeqFile, gb_data *ptGBData) {
     register char c;
     char sLine[LINELEN] = {'\0',};
     gb_string sSequence, sSequence2;
 
     ptGBData->sSequence = malloc((ptGBData->lLength + 1) * sizeof(char));
     sSequence2 = ptGBData->sSequence;
-    
+
+#ifdef GZ_SUPPORT
+    while(gzgets(FSeqFile, sLine, LINELEN)) {
+#else
     while(fgets(sLine, LINELEN, FSeqFile)) {
+#endif
         if (*sLine == '/' && *(sLine + 1) == '/') {
             putLine(sLine);
             break;
@@ -881,14 +906,14 @@ static void initGBData(gb_data *ptGBData) {
     ptGBData->sDate[0] = '\0';
 }
 
-static gb_data *_parseGBFF(FILE *FSeqFile) {
+static gb_data *_parseGBFF(FILEPTR FSeqFile) {
     int i;
     char sLine[LINELEN] = {'\0',};
     gb_data *ptGBData = NULL;
 
     struct tField {
         char sField[FIELDLEN + 1];
-        void (*vFunction)(FILE *FSeqFile, gb_data *ptGBData);
+        void (*vFunction)(FILEPTR FSeqFile, gb_data *ptGBData);
     } atFields[] = {
         {"DEFINITION", parseDef},
         {"ACCESSION", parseAccession},
@@ -903,7 +928,11 @@ static gb_data *_parseGBFF(FILE *FSeqFile) {
     };
 
     /* Confirming GBFF File with LOCUS line */
+#ifdef GZ_SUPPORT
+    while(gzgets(FSeqFile, sLine, LINELEN)) {
+#else
     while(fgets(sLine, LINELEN, FSeqFile)) {
+#endif
         if (strstr(sLine, "LOCUS") == sLine) {
             ptGBData = malloc(sizeof(gb_data));
             initGBData(ptGBData);
@@ -942,16 +971,26 @@ gb_data **parseGBFF(gb_string spFileName) {
     int iGBFSeqPos = 0;
     unsigned int iGBFSeqNum = INITGBFSEQNUM;
     gb_data **pptGBDatas;
-    FILE *FSeqFile;
- 
+    FILEPTR FSeqFile;
+    FILE *tmpFSeqFile;
+
     if (spFileName == NULL) {
-        FSeqFile = stdin;
+        tmpFSeqFile = stdin;
+#ifdef GZ_SUPPORT
+        FSeqFile = gzdopen(fileno(tmpFSeqFile), "r");
+#else
+        FSeqFile = tmpFSeqFile;
+#endif
     } else {
         if (access(spFileName, F_OK) != 0) {
             /* perror(spFileName); */
             return NULL;
         } else {
+#ifdef GZ_SUPPORT
+            FSeqFile = gzopen(spFileName, "r");
+#else
             FSeqFile = fopen(spFileName, "r");
+#endif
         }
     }
    
@@ -967,8 +1006,13 @@ gb_data **parseGBFF(gb_string spFileName) {
         *(pptGBDatas + iGBFSeqPos) = _parseGBFF(FSeqFile);
     } while (*(pptGBDatas + iGBFSeqPos++) != NULL);
     
-    if (spFileName) fclose(FSeqFile);
-
+    if (spFileName) {
+#ifdef GZ_SUPPORT
+        gzclose(FSeqFile);
+#else
+        fclose(FSeqFile);
+#endif
+    }
     freeRegEx();
 
     return pptGBDatas;
@@ -1038,7 +1082,7 @@ void freeGBData(gb_data **pptGBData) {
     free(pptGBData);
 }
 
-static void getRevCom(gb_string sSequence) {
+void getRevCom(gb_string sSequence) {
     char c;
     unsigned int k;
     unsigned long i, j;

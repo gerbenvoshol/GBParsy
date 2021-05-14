@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <zlib.h>
+#include <ctype.h>
+
 #include "gbfp.h"
  
 void help(void) {
@@ -16,8 +18,20 @@ void help(void) {
         "\n"
         "-o  omit the use of location based identifiers (e.g. CDS_995899_996610)\n"
         "-t  translate the extracted DNA sequence\n"
+        "-u  convert sequence to upper case\n"
         "-h  print help information and exit\n"
         "-V  print version information and exit\n");
+}
+
+char* strupr(char* s)
+{
+    char* tmp = s;
+
+    for (;*tmp;++tmp) {
+        *tmp = toupper((unsigned char) *tmp);
+    }
+
+    return s;
 }
 
 int main(int argc, char *argv[]) {
@@ -26,7 +40,7 @@ int main(int argc, char *argv[]) {
     char *sQualifier = NULL;
     int translate = 0;
     int omit_id = 0;
-
+    int upper = 0;
     gb_data **pptSeqData, *ptSeqData;
     gb_feature *ptFeature;
     gb_qualifier *ptQualifier;
@@ -39,7 +53,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    while((iOpt = getopt(argc, argv, "f:i:q:thVo")) != -1) {
+    while((iOpt = getopt(argc, argv, "f:i:q:thVou")) != -1) {
         switch(iOpt) {
         case 'h':
             help();
@@ -59,6 +73,9 @@ int main(int argc, char *argv[]) {
             break;
         case 'o':
             omit_id = 1;
+            break;
+        case 'u':
+            upper = 1;
             break;
         default:
             help();
@@ -87,7 +104,11 @@ int main(int argc, char *argv[]) {
                             printf("%s\n", aaSeq);
                             free(aaSeq);
                         } else {
-                            printf("%s\n", getSequence(ptSeqData->sSequence, ptFeature));
+                            if (upper) {
+                                printf("%s\n", strupr(getSequence(ptSeqData->sSequence, ptFeature)));
+                            } else {
+                                printf("%s\n", getSequence(ptSeqData->sSequence, ptFeature));
+                            }
                         }
                     } else {
                         if (omit_id) {
@@ -109,7 +130,11 @@ int main(int argc, char *argv[]) {
                             printf("%s\n", aaSeq);
                             free(aaSeq);
                         } else {
-                            printf("%s\n", getSequence(ptSeqData->sSequence, ptFeature));
+                            if (upper) {
+                                printf("%s\n", strupr(getSequence(ptSeqData->sSequence, ptFeature)));
+                            } else {
+                                printf("%s\n", getSequence(ptSeqData->sSequence, ptFeature));
+                            }
                         }
                     }
                 }

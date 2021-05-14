@@ -1,6 +1,7 @@
 CC = gcc
-CFLAGS = -O3 -Wall -DNDEBUG
-DEBUG = -ggdb -pg -Wall
+CFLAGS = -O3 -Wall -DNDEBUG -DGZ_SUPPORT
+LFLAGS = -lz
+DEBUG = -ggdb3 -pg -Wall
 
 LIBS = libgbfp.a
 SHAREDLIB = libgbfp.so
@@ -17,10 +18,9 @@ man3dir = $(mandir)/man3
 
 OBJS = gbfp.o
 
-all: $(SHAREDLIB) $(LIBS) seqext
 
 $(OBJS): gbfp.c
-	$(CC) $(CFLAGS) -D_GNU_SOURCE -fPIC -g -c gbfp.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -fPIC -g -c gbfp.c $(LFLAGS)
 
 $(SHAREDLIB): $(OBJS)
 	$(CC) -shared -Wl,-h,$(SHAREDLIBM) -o $(SHAREDLIBV) $(OBJS)
@@ -51,10 +51,9 @@ uninstall:
 	rm -f gbfp.h
 
 seqext: seqext.c gbfp.c
-	$(CC) $(CFLAGS) -D_GNU_SOURCE -o seqext seqext.c gbfp.c
+	$(CC) $(DEBUG) $(CFLAGS) -D_GNU_SOURCE -o seqext seqext.c gbfp.c $(LFLAGS)
 
 debug: seqext.c gbfp.c
-	$(CC) $(DEBUG) -D_GNU_SOURCE -o seqext seqext.c gbfp.c
+	$(CC) $(DEBUG) -D_GNU_SOURCE -o seqext seqext.c gbfp.c $(LFLAGS)
 
 clean:
-	rm -f $(OBJS) $(LIBS) $(SHAREDLIBV) $(SHAREDLIBM) seqext
